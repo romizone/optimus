@@ -26,8 +26,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
 /* ===== MAIN TABS ===== */
-.main-tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);z-index:200;position:relative}
-.main-tab{flex:none;padding:10px 28px;font-size:12px;font-weight:700;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;text-transform:uppercase;letter-spacing:1px;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:8px}
+.main-tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);z-index:200;position:relative;overflow-x:auto;scrollbar-width:none}
+.main-tabs::-webkit-scrollbar{display:none}
+.main-tab{flex:1 1 0;min-width:0;padding:10px 10px;font-size:10px;font-weight:700;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;text-transform:uppercase;letter-spacing:.3px;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;text-align:center}
 .main-tab:hover{color:var(--text);background:rgba(255,255,255,.02)}
 .main-tab.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(0,212,255,.04)}
 .main-tab .tab-icon{font-size:14px}
