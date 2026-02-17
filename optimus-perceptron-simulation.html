@@ -1,0 +1,1877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Optimus Perceptron — AI Humanoid Robot Simulation v3.0</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #2a2a3a;
+    --text: #e0e0f0;
+    --text-dim: #8888aa;
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --green: #10b981;
+    --yellow: #f59e0b;
+    --red: #ef4444;
+    --orange: #f97316;
+    --pink: #ec4899;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  .header {
+    padding: 14px 24px;
+    background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(124,58,237,0.08));
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(20px);
+  }
+
+  .header h1 {
+    font-size: 20px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+
+  .header .subtitle {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 2px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .status-bar {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .status-item { display: flex; align-items: center; gap: 6px; }
+
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .status-dot.green { background: var(--green); box-shadow: 0 0 8px var(--green); }
+
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
+
+  /* ===== MAIN 4-COLUMN LAYOUT ===== */
+  .main {
+    display: grid;
+    grid-template-columns: 240px 1fr 1fr 300px;
+    gap: 0;
+    height: calc(100vh - 52px);
+  }
+
+  /* ===== LEFT: Robot Body ===== */
+  .robot-panel {
+    border-right: 1px solid var(--border);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+  }
+
+  .robot-canvas {
+    width: 100%;
+    aspect-ratio: 3/5;
+    background: var(--surface);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .robot-svg { width: 100%; height: 100%; }
+
+  .sensor-indicators {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .sensor-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 10px;
+    transition: all 0.2s;
+  }
+
+  .sensor-card .label {
+    color: var(--text-dim);
+    margin-bottom: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .sensor-card .value { font-weight: 600; font-size: 11px; }
+
+  .sensor-card .bar {
+    height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 4px;
+    overflow: hidden;
+  }
+
+  .sensor-card .bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+
+  /* ===== VISION PANEL ===== */
+  .vision-panel {
+    border-right: 1px solid var(--border);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+  }
+
+  .vision-tab-bar {
+    display: flex;
+    gap: 4px;
+    background: var(--surface);
+    border-radius: 8px;
+    padding: 3px;
+  }
+
+  .vision-tab {
+    flex: 1;
+    padding: 6px 4px;
+    text-align: center;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text-dim);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .vision-tab.active {
+    color: var(--accent);
+    background: rgba(0,212,255,0.1);
+  }
+
+  .vision-viewport {
+    width: 100%;
+    aspect-ratio: 16/10;
+    background: #0d0d14;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .vision-viewport canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .vision-hud {
+    position: absolute;
+    top: 8px; left: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--accent);
+    background: rgba(0,0,0,0.6);
+    padding: 4px 8px;
+    border-radius: 4px;
+    pointer-events: none;
+  }
+
+  .vision-hud-right {
+    position: absolute;
+    top: 8px; right: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--green);
+    background: rgba(0,0,0,0.6);
+    padding: 4px 8px;
+    border-radius: 4px;
+    pointer-events: none;
+  }
+
+  .vision-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .vi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px;
+  }
+
+  .vi-card .vi-label {
+    font-size: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 3px;
+  }
+
+  .vi-card .vi-value {
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .detection-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .det-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 11px;
+    transition: all 0.3s;
+  }
+
+  .det-item .det-color {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    margin-right: 8px;
+  }
+
+  .det-item .det-name {
+    flex: 1;
+    font-weight: 600;
+  }
+
+  .det-item .det-conf {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--green);
+  }
+
+  .det-item .det-dist {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-left: 8px;
+  }
+
+  /* ===== CENTER: Architecture Stack ===== */
+  .center-panel {
+    padding: 12px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border-right: 1px solid var(--border);
+  }
+
+  .arch-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .layer-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .layer {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .layer::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    border-radius: 8px 0 0 8px;
+  }
+
+  .layer:hover, .layer.active {
+    transform: translateX(3px);
+    border-color: var(--accent);
+  }
+
+  .layer.active { background: rgba(0,212,255,0.04); }
+
+  .layer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  .layer-name {
+    font-weight: 700;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .layer-badge {
+    font-size: 8px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+  }
+
+  .layer-freq {
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-dim);
+  }
+
+  .layer-desc {
+    font-size: 10px;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+
+  .layer-details {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    display: none;
+  }
+
+  .layer.active .layer-details { display: block; }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+  }
+
+  .detail-item {
+    background: var(--surface2);
+    border-radius: 5px;
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+
+  .detail-item .dt-label {
+    color: var(--text-dim);
+    font-size: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+
+  .detail-item .dt-value { font-weight: 600; font-size: 10px; }
+
+  .dataflow-arrow {
+    text-align: center;
+    color: var(--accent);
+    font-size: 12px;
+    opacity: 0.3;
+    height: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .layer-vision::before { background: var(--accent); }
+  .layer-fusion::before { background: var(--green); }
+  .layer-world::before { background: var(--accent2); }
+  .layer-planner::before { background: var(--yellow); }
+  .layer-rl::before { background: var(--orange); }
+  .layer-control::before { background: var(--red); }
+  .layer-memory::before { background: var(--pink); }
+
+  /* ===== RIGHT: Console ===== */
+  .right-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-tab-bar {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .panel-tab {
+    flex: 1;
+    padding: 8px;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-dim);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .panel-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    background: rgba(0,212,255,0.04);
+  }
+
+  .panel-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+  }
+
+  .console-log {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    line-height: 1.7;
+  }
+
+  .log-entry {
+    padding: 2px 0;
+    display: flex;
+    gap: 6px;
+    opacity: 0;
+    animation: fadeIn 0.3s forwards;
+  }
+
+  @keyframes fadeIn { to { opacity: 1; } }
+
+  .log-time { color: var(--text-dim); white-space: nowrap; font-size: 9px; }
+
+  .log-tag {
+    padding: 0 5px;
+    border-radius: 3px;
+    font-size: 8px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .log-tag.vision { background: rgba(0,212,255,0.15); color: var(--accent); }
+  .log-tag.fusion { background: rgba(16,185,129,0.15); color: var(--green); }
+  .log-tag.world { background: rgba(124,58,237,0.15); color: var(--accent2); }
+  .log-tag.planner { background: rgba(245,158,11,0.15); color: var(--yellow); }
+  .log-tag.rl { background: rgba(249,115,22,0.15); color: var(--orange); }
+  .log-tag.control { background: rgba(239,68,68,0.15); color: var(--red); }
+  .log-tag.memory { background: rgba(236,72,153,0.15); color: var(--pink); }
+  .log-tag.lidar { background: rgba(0,212,255,0.1); color: #66e0ff; }
+
+  .log-msg { color: var(--text); flex: 1; }
+
+  .task-panel { padding: 8px; display: flex; flex-direction: column; gap: 8px; }
+
+  .task-input-area { display: flex; gap: 6px; }
+
+  .task-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .task-input:focus { border-color: var(--accent); }
+
+  .task-btn {
+    padding: 8px 14px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-weight: 700;
+    font-size: 11px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+  }
+
+  .task-btn:hover { opacity: 0.85; }
+  .task-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .task-preset-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+  }
+
+  .preset-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 6px 8px;
+    color: var(--text);
+    font-size: 10px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+  }
+
+  .preset-btn:hover {
+    border-color: var(--accent);
+    background: rgba(0,212,255,0.04);
+  }
+
+  .preset-btn .preset-icon { font-size: 14px; margin-bottom: 2px; }
+
+  .metrics-grid { display: flex; flex-direction: column; gap: 8px; }
+
+  .metric-row {
+    background: var(--surface);
+    border-radius: 6px;
+    padding: 10px;
+    border: 1px solid var(--border);
+  }
+
+  .metric-row .metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .metric-row .metric-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+  .metric-row .metric-val { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 12px; }
+
+  .metric-bar-container { height: 4px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .metric-bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+
+  .timeline { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+
+  .timeline-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    padding: 5px 8px;
+    border-radius: 5px;
+    transition: all 0.3s;
+  }
+
+  .timeline-step.active { background: rgba(0,212,255,0.06); }
+  .timeline-step.done { background: rgba(16,185,129,0.06); }
+
+  .step-indicator {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    flex-shrink: 0;
+    transition: all 0.3s;
+  }
+
+  .timeline-step.active .step-indicator { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 8px rgba(0,212,255,0.3); }
+  .timeline-step.done .step-indicator { border-color: var(--green); background: var(--green); color: white; }
+
+  .step-text { flex: 1; color: var(--text-dim); }
+  .timeline-step.active .step-text { color: var(--text); }
+  .timeline-step.done .step-text { color: var(--green); }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .section-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    font-weight: 600;
+    padding: 2px 0;
+  }
+
+  /* ===== LiDAR point cloud canvas ===== */
+  .lidar-canvas-wrap {
+    width: 100%;
+    aspect-ratio: 16/10;
+    background: #080810;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .lidar-canvas-wrap canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* Segmentation legend */
+  .seg-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .seg-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  .seg-legend-color {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
+
+  @media (max-width: 1200px) {
+    .main { grid-template-columns: 1fr 1fr; }
+    .robot-panel, .center-panel { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>OPTIMUS PERCEPTRON</h1>
+    <div class="subtitle">Humanoid AI Architecture Simulation v3.0 — Vision + LiDAR</div>
+  </div>
+  <div class="status-bar">
+    <div class="status-item">
+      <div class="status-dot green"></div>
+      <span>ONLINE</span>
+    </div>
+    <div class="status-item">
+      <span style="color:var(--text-dim)">UP</span>
+      <span id="uptime">00:00:00</span>
+    </div>
+    <div class="status-item">
+      <span style="color:var(--text-dim)">CYC</span>
+      <span id="cycleCount">0</span>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- COL 1: Robot Body -->
+  <div class="robot-panel">
+    <div class="section-label">Robot Body</div>
+    <div class="robot-canvas">
+      <svg class="robot-svg" viewBox="0 0 240 400">
+        <defs>
+          <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1a1a2a" stroke-width="0.5"/>
+          </pattern>
+          <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#2a2a4a"/>
+            <stop offset="100%" stop-color="#16162a"/>
+          </linearGradient>
+        </defs>
+        <rect width="240" height="400" fill="url(#grid)"/>
+        <ellipse cx="120" cy="60" rx="28" ry="32" fill="url(#bodyGrad)" stroke="#3a3a5a" stroke-width="1.5"/>
+        <rect x="96" y="48" width="48" height="12" rx="6" fill="#0a0a14" stroke="var(--accent)" stroke-width="1" opacity="0.8"/>
+        <circle cx="108" cy="54" r="3" fill="var(--accent)" opacity="0.9"><animate attributeName="opacity" values="0.9;0.3;0.9" dur="3s" repeatCount="indefinite"/></circle>
+        <circle cx="132" cy="54" r="3" fill="var(--accent)" opacity="0.9"><animate attributeName="opacity" values="0.9;0.3;0.9" dur="3s" begin="0.2s" repeatCount="indefinite"/></circle>
+        <!-- Camera FOV cone -->
+        <path d="M108 50 L40 10 L200 10 L132 50" fill="rgba(0,212,255,0.04)" stroke="var(--accent)" stroke-width="0.5" stroke-dasharray="3 2" opacity="0.5"/>
+        <text x="120" y="8" text-anchor="middle" font-size="6" fill="var(--accent)" opacity="0.5">FOV 120°</text>
+        <!-- LiDAR ring on head -->
+        <ellipse cx="120" cy="35" rx="22" ry="4" fill="none" stroke="var(--green)" stroke-width="0.8" stroke-dasharray="2 2" opacity="0.5">
+          <animate attributeName="stroke-dashoffset" values="0;20" dur="2s" repeatCount="indefinite"/>
+        </ellipse>
+        <text x="120" y="30" text-anchor="middle" font-size="6" fill="var(--green)" opacity="0.5">LiDAR</text>
+        <rect x="112" y="88" width="16" height="14" rx="3" fill="url(#bodyGrad)" stroke="#3a3a5a" stroke-width="1"/>
+        <path d="M80 102 L160 102 L155 200 L85 200 Z" fill="url(#bodyGrad)" stroke="#3a3a5a" stroke-width="1.5"/>
+        <rect x="100" y="115" width="40" height="50" rx="6" fill="#0f0f1e" stroke="#2a2a4a" stroke-width="1"/>
+        <circle cx="120" cy="140" r="8" fill="#0a0a14" stroke="var(--accent2)" stroke-width="1.5"><animate attributeName="r" values="8;9;8" dur="2s" repeatCount="indefinite"/></circle>
+        <circle cx="120" cy="140" r="4" fill="var(--accent2)" opacity="0.6"><animate attributeName="opacity" values="0.6;0.2;0.6" dur="2s" repeatCount="indefinite"/></circle>
+        <rect x="56" y="106" width="22" height="50" rx="8" fill="url(#bodyGrad)" stroke="#3a3a5a" stroke-width="1"/>
+        <rect x="54" y="158" width="18" height="46" rx="6" fill="url(#bodyGrad)" stroke="#3a3a5a" stroke-width="1"/>
+        <ellipse cx="63" cy="212" rx="10" ry="8" fill="url(#bodyGrad)" stroke="#3a3a5a" stroke-width="1"/>
+        <rect x="162" y="106" width="22" height="50" rx="8" fill="url(#bodyGrad)" stroke="#3a3a5a" stroke-width="1"/>
+        <rect x="168" y="158" width="18" height="46" rx="6" fill="url(#bodyGrad)" stroke="#3a3a5a" stroke-width="1"/>
+        <ellipse cx="177" cy="212" rx="10" ry="8" fill="url(#bodyGrad)" stroke="#3a3a5a" stroke-width="1"/>
+        <rect x="88" y="202" width="26" height="60" rx="8" fill="url(#bodyGrad)" stroke="#3a3a5a" stroke-width="1"/>
+        <rect x="86" y="264" width="24" height="56" rx="6" fill="url(#bodyGrad)" stroke="#3a3a5a" stroke-width="1"/>
+        <ellipse cx="98" cy="328" rx="16" ry="8" fill="url(#bodyGrad)" stroke="#3a3a5a" stroke-width="1"/>
+        <rect x="126" y="202" width="26" height="60" rx="8" fill="url(#bodyGrad)" stroke="#3a3a5a" stroke-width="1"/>
+        <rect x="130" y="264" width="24" height="56" rx="6" fill="url(#bodyGrad)" stroke="#3a3a5a" stroke-width="1"/>
+        <ellipse cx="142" cy="328" rx="16" ry="8" fill="url(#bodyGrad)" stroke="#3a3a5a" stroke-width="1"/>
+        <!-- Sensor glow dots -->
+        <circle cx="120" cy="38" r="3" fill="var(--green)" opacity="0.7"><animate attributeName="opacity" values="0.7;0.2;0.7" dur="1.5s" repeatCount="indefinite"/></circle>
+        <circle cx="63" cy="212" r="2.5" fill="var(--yellow)" opacity="0.7"><animate attributeName="opacity" values="0.7;0.2;0.7" dur="2s" repeatCount="indefinite"/></circle>
+        <circle cx="177" cy="212" r="2.5" fill="var(--yellow)" opacity="0.7"><animate attributeName="opacity" values="0.7;0.2;0.7" dur="2s" begin="0.5s" repeatCount="indefinite"/></circle>
+        <circle cx="98" cy="328" r="2.5" fill="var(--orange)" opacity="0.7"><animate attributeName="opacity" values="0.7;0.2;0.7" dur="1.8s" repeatCount="indefinite"/></circle>
+        <circle cx="142" cy="328" r="2.5" fill="var(--orange)" opacity="0.7"><animate attributeName="opacity" values="0.7;0.2;0.7" dur="1.8s" begin="0.3s" repeatCount="indefinite"/></circle>
+        <circle cx="120" cy="150" r="2" fill="var(--pink)" opacity="0.6"><animate attributeName="opacity" values="0.6;0.1;0.6" dur="1s" repeatCount="indefinite"/></circle>
+      </svg>
+    </div>
+
+    <div class="section-label">Sensor Telemetry</div>
+    <div class="sensor-indicators">
+      <div class="sensor-card">
+        <div class="label">Stereo Vision</div>
+        <div class="value" id="visionFPS">30 FPS</div>
+        <div class="bar"><div class="bar-fill" style="width:85%; background:var(--accent)"></div></div>
+      </div>
+      <div class="sensor-card">
+        <div class="label">LiDAR</div>
+        <div class="value" id="lidarStatus">128ch Active</div>
+        <div class="bar"><div class="bar-fill" style="width:95%; background:var(--green)"></div></div>
+      </div>
+      <div class="sensor-card">
+        <div class="label">IMU</div>
+        <div class="value" id="imuStatus">Stable</div>
+        <div class="bar"><div class="bar-fill" style="width:92%; background:var(--green)"></div></div>
+      </div>
+      <div class="sensor-card">
+        <div class="label">Force/Torque</div>
+        <div class="value" id="ftValue">12.4 N</div>
+        <div class="bar"><div class="bar-fill" style="width:60%; background:var(--yellow)"></div></div>
+      </div>
+      <div class="sensor-card">
+        <div class="label">Tactile</div>
+        <div class="value">Active</div>
+        <div class="bar"><div class="bar-fill" style="width:78%; background:var(--orange)"></div></div>
+      </div>
+      <div class="sensor-card">
+        <div class="label">Depth Sensor</div>
+        <div class="value" id="depthRange">0.3–5.2m</div>
+        <div class="bar"><div class="bar-fill" style="width:88%; background:var(--accent2)"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COL 2: Vision & LiDAR -->
+  <div class="vision-panel">
+    <div class="section-label">Robot Vision — What Optimus Sees</div>
+    <div class="vision-tab-bar">
+      <div class="vision-tab active" onclick="switchVision('camera', this)">RGB Camera</div>
+      <div class="vision-tab" onclick="switchVision('depth', this)">Depth Map</div>
+      <div class="vision-tab" onclick="switchVision('segment', this)">Segmentation</div>
+      <div class="vision-tab" onclick="switchVision('lidar', this)">LiDAR 3D</div>
+    </div>
+
+    <!-- Camera View -->
+    <div class="vision-viewport" id="vv-camera">
+      <canvas id="cameraCanvas"></canvas>
+      <div class="vision-hud" id="camHud">CAM L+R | 1280×720 | 30fps</div>
+      <div class="vision-hud-right" id="camDetCount">5 objects</div>
+    </div>
+
+    <!-- Depth Map -->
+    <div class="vision-viewport" id="vv-depth" style="display:none">
+      <canvas id="depthCanvas"></canvas>
+      <div class="vision-hud">DEPTH | Stereo Disparity | 0.3–6.0m</div>
+      <div class="vision-hud-right">640×480</div>
+    </div>
+
+    <!-- Segmentation -->
+    <div class="vision-viewport" id="vv-segment" style="display:none">
+      <canvas id="segCanvas"></canvas>
+      <div class="vision-hud">SEMANTIC SEG | 12 classes</div>
+      <div class="vision-hud-right">ViT-L/14</div>
+    </div>
+
+    <!-- LiDAR 3D Point Cloud -->
+    <div class="lidar-canvas-wrap" id="vv-lidar" style="display:none">
+      <canvas id="lidarCanvas"></canvas>
+      <div class="vision-hud">LiDAR 3D | 128ch | 300K pts/s</div>
+      <div class="vision-hud-right" id="lidarPts">287,412 pts</div>
+    </div>
+
+    <!-- Detection List -->
+    <div class="section-label">Detected Objects</div>
+    <div class="detection-list" id="detectionList"></div>
+
+    <div class="section-label" style="margin-top:4px">Segmentation Legend</div>
+    <div class="seg-legend" id="segLegend"></div>
+
+    <div class="vision-info">
+      <div class="vi-card"><div class="vi-label">Inference</div><div class="vi-value" id="viInference">28 ms</div></div>
+      <div class="vi-card"><div class="vi-label">Model</div><div class="vi-value">ViT-L/14 + DETR</div></div>
+      <div class="vi-card"><div class="vi-label">LiDAR Range</div><div class="vi-value" id="viLidarRange">0.2–100m</div></div>
+      <div class="vi-card"><div class="vi-label">Point Cloud</div><div class="vi-value" id="viPointCloud">287K pts</div></div>
+    </div>
+  </div>
+
+  <!-- COL 3: Architecture Stack -->
+  <div class="center-panel">
+    <div class="arch-title">AI Stack — Dataflow Pipeline</div>
+    <div class="layer-stack">
+      <div class="layer layer-vision" onclick="toggleLayer(this)" data-layer="vision">
+        <div class="layer-header">
+          <div class="layer-name"><span>👁 Vision Model</span><span class="layer-badge" style="background:rgba(0,212,255,0.15);color:var(--accent)">PERCEPTION</span></div>
+          <div class="layer-freq" id="visionHz">30 Hz</div>
+        </div>
+        <div class="layer-desc">Object detection, segmentation, pose estimation, depth inference via ViT + multimodal transformer.</div>
+        <div class="layer-details">
+          <div class="detail-grid">
+            <div class="detail-item"><div class="dt-label">Model</div><div class="dt-value">ViT-L/14 + DETR</div></div>
+            <div class="detail-item"><div class="dt-label">Input</div><div class="dt-value">Stereo RGB 1280×720</div></div>
+            <div class="detail-item"><div class="dt-label">Output</div><div class="dt-value">3D BBox + Seg Map</div></div>
+            <div class="detail-item"><div class="dt-label">Latency</div><div class="dt-value" id="visionLatency">33 ms</div></div>
+            <div class="detail-item"><div class="dt-label">Objects</div><div class="dt-value" id="objCount">5 detected</div></div>
+            <div class="detail-item"><div class="dt-label">Confidence</div><div class="dt-value" id="visionConf">94.2%</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="dataflow-arrow">▼</div>
+      <div class="layer layer-fusion" onclick="toggleLayer(this)" data-layer="fusion">
+        <div class="layer-header">
+          <div class="layer-name"><span>🔗 Sensor Fusion</span><span class="layer-badge" style="background:rgba(16,185,129,0.15);color:var(--green)">EMBODIMENT</span></div>
+          <div class="layer-freq">200 Hz</div>
+        </div>
+        <div class="layer-desc">EKF merges IMU, joints, force/torque, LiDAR, tactile → unified body state (6-DoF + CoM + contacts).</div>
+        <div class="layer-details">
+          <div class="detail-grid">
+            <div class="detail-item"><div class="dt-label">Method</div><div class="dt-value">EKF + Factor Graph</div></div>
+            <div class="detail-item"><div class="dt-label">State Dim</div><div class="dt-value">84 (28j × 3)</div></div>
+            <div class="detail-item"><div class="dt-label">CoM</div><div class="dt-value" id="comVal">[0.02, -0.01, 0.82]</div></div>
+            <div class="detail-item"><div class="dt-label">Contacts</div><div class="dt-value" id="contactVal">2 (both feet)</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="dataflow-arrow">▼</div>
+      <div class="layer layer-world" onclick="toggleLayer(this)" data-layer="world">
+        <div class="layer-header">
+          <div class="layer-name"><span>🌍 World Model</span><span class="layer-badge" style="background:rgba(124,58,237,0.15);color:var(--accent2)">SIMULATION</span></div>
+          <div class="layer-freq">10 Hz</div>
+        </div>
+        <div class="layer-desc">3D scene reconstruction, object permanence, physics approximation, temporal prediction. SLAM + Dreamer-v3.</div>
+        <div class="layer-details">
+          <div class="detail-grid">
+            <div class="detail-item"><div class="dt-label">Map</div><div class="dt-value">Voxel 0.02m</div></div>
+            <div class="detail-item"><div class="dt-label">Objects</div><div class="dt-value" id="worldObj">8 tracked</div></div>
+            <div class="detail-item"><div class="dt-label">Predict</div><div class="dt-value">Dreamer-v3</div></div>
+            <div class="detail-item"><div class="dt-label">Lookahead</div><div class="dt-value">2.5 sec</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="dataflow-arrow">▼</div>
+      <div class="layer layer-planner" onclick="toggleLayer(this)" data-layer="planner">
+        <div class="layer-header">
+          <div class="layer-name"><span>🧠 Planner (LLM)</span><span class="layer-badge" style="background:rgba(245,158,11,0.15);color:var(--yellow)">COGNITION</span></div>
+          <div class="layer-freq">~1 Hz</div>
+        </div>
+        <div class="layer-desc">LLM for NL parsing & task decomposition. PDDL + Behavior Tree → executable subtask graph.</div>
+        <div class="layer-details">
+          <div class="detail-grid">
+            <div class="detail-item"><div class="dt-label">LLM</div><div class="dt-value">Multimodal 7B</div></div>
+            <div class="detail-item"><div class="dt-label">Symbolic</div><div class="dt-value">PDDL + BT</div></div>
+            <div class="detail-item"><div class="dt-label">Goal</div><div class="dt-value" id="planGoal">IDLE</div></div>
+            <div class="detail-item"><div class="dt-label">Subtasks</div><div class="dt-value" id="planSubs">0 queued</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="dataflow-arrow">▼</div>
+      <div class="layer layer-rl" onclick="toggleLayer(this)" data-layer="rl">
+        <div class="layer-header">
+          <div class="layer-name"><span>⚡ RL / Motor Policy</span><span class="layer-badge" style="background:rgba(249,115,22,0.15);color:var(--orange)">EXECUTION</span></div>
+          <div class="layer-freq">200 Hz</div>
+        </div>
+        <div class="layer-desc">PPO/SAC policy → joint torques + grasp forces. Residual learning for sim-to-real.</div>
+        <div class="layer-details">
+          <div class="detail-grid">
+            <div class="detail-item"><div class="dt-label">Algo</div><div class="dt-value">PPO + Residual</div></div>
+            <div class="detail-item"><div class="dt-label">Actions</div><div class="dt-value">28j + 2 grip</div></div>
+            <div class="detail-item"><div class="dt-label">Reward</div><div class="dt-value" id="rlReward">+0.87</div></div>
+            <div class="detail-item"><div class="dt-label">Policy</div><div class="dt-value" id="rlPolicy">locomotion_v4</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="dataflow-arrow">▼</div>
+      <div class="layer layer-control" onclick="toggleLayer(this)" data-layer="control">
+        <div class="layer-header">
+          <div class="layer-name"><span>🔴 Real-Time Control</span><span class="layer-badge" style="background:rgba(239,68,68,0.15);color:var(--red)">STABILITY</span></div>
+          <div class="layer-freq">1000 Hz</div>
+        </div>
+        <div class="layer-desc">PID + ZMP balance controller. Torque control, reflex override, safety shutdown. No LLM here.</div>
+        <div class="layer-details">
+          <div class="detail-grid">
+            <div class="detail-item"><div class="dt-label">Controller</div><div class="dt-value">PID + ZMP</div></div>
+            <div class="detail-item"><div class="dt-label">Latency</div><div class="dt-value">&lt; 1 ms</div></div>
+            <div class="detail-item"><div class="dt-label">Balance</div><div class="dt-value" id="balVal">Stable</div></div>
+            <div class="detail-item"><div class="dt-label">Safety</div><div class="dt-value" id="safeVal">OK</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="dataflow-arrow" style="opacity:0.15">▼</div>
+      <div class="layer layer-memory" onclick="toggleLayer(this)" data-layer="memory">
+        <div class="layer-header">
+          <div class="layer-name"><span>💾 Memory</span><span class="layer-badge" style="background:rgba(236,72,153,0.15);color:var(--pink)">PERSISTENT</span></div>
+          <div class="layer-freq">Async</div>
+        </div>
+        <div class="layer-desc">Episodic, semantic, spatial memory + vector DB + graph memory.</div>
+        <div class="layer-details">
+          <div class="detail-grid">
+            <div class="detail-item"><div class="dt-label">Episodic</div><div class="dt-value" id="memEpisodic">142 events</div></div>
+            <div class="detail-item"><div class="dt-label">Spatial</div><div class="dt-value">3 rooms</div></div>
+            <div class="detail-item"><div class="dt-label">Semantic</div><div class="dt-value">12.4K</div></div>
+            <div class="detail-item"><div class="dt-label">Vector DB</div><div class="dt-value">FAISS</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COL 4: Console & Tasks -->
+  <div class="right-panel">
+    <div class="panel-tab-bar">
+      <div class="panel-tab active" onclick="switchTab('console', this)">Console</div>
+      <div class="panel-tab" onclick="switchTab('tasks', this)">Tasks</div>
+      <div class="panel-tab" onclick="switchTab('metrics', this)">Metrics</div>
+    </div>
+    <div class="panel-content" id="tab-console">
+      <div class="console-log" id="consoleLog"></div>
+    </div>
+    <div class="panel-content" id="tab-tasks" style="display:none">
+      <div class="task-panel">
+        <div class="section-label">Issue Command</div>
+        <div class="task-input-area">
+          <input class="task-input" id="taskInput" placeholder="e.g. Pick up the cup..." onkeydown="if(event.key==='Enter')runTask()">
+          <button class="task-btn" id="taskBtn" onclick="runTask()">RUN</button>
+        </div>
+        <div class="section-label" style="margin-top:6px">Presets</div>
+        <div class="task-preset-grid">
+          <div class="preset-btn" onclick="runPreset('pickup')"><div class="preset-icon">🫗</div>Pick up cup</div>
+          <div class="preset-btn" onclick="runPreset('navigate')"><div class="preset-icon">🚶</div>Walk to kitchen</div>
+          <div class="preset-btn" onclick="runPreset('wave')"><div class="preset-icon">👋</div>Wave hello</div>
+          <div class="preset-btn" onclick="runPreset('inspect')"><div class="preset-icon">🔍</div>Inspect object</div>
+        </div>
+        <div class="section-label" style="margin-top:8px">Timeline</div>
+        <div class="timeline" id="timeline"></div>
+      </div>
+    </div>
+    <div class="panel-content" id="tab-metrics" style="display:none">
+      <div class="metrics-grid">
+        <div class="metric-row"><div class="metric-header"><div class="metric-label">CPU</div><div class="metric-val" id="cpuVal" style="color:var(--accent)">62%</div></div><div class="metric-bar-container"><div class="metric-bar-fill" id="cpuBar" style="width:62%;background:var(--accent)"></div></div></div>
+        <div class="metric-row"><div class="metric-header"><div class="metric-label">GPU</div><div class="metric-val" id="gpuVal" style="color:var(--accent2)">78%</div></div><div class="metric-bar-container"><div class="metric-bar-fill" id="gpuBar" style="width:78%;background:var(--accent2)"></div></div></div>
+        <div class="metric-row"><div class="metric-header"><div class="metric-label">Battery</div><div class="metric-val" id="battVal" style="color:var(--green)">84%</div></div><div class="metric-bar-container"><div class="metric-bar-fill" id="battBar" style="width:84%;background:var(--green)"></div></div></div>
+        <div class="metric-row"><div class="metric-header"><div class="metric-label">Network</div><div class="metric-val" id="netVal" style="color:var(--yellow)">12 ms</div></div><div class="metric-bar-container"><div class="metric-bar-fill" id="netBar" style="width:12%;background:var(--yellow)"></div></div></div>
+        <div class="metric-row"><div class="metric-header"><div class="metric-label">RAM</div><div class="metric-val" id="memVal" style="color:var(--pink)">6.2/16GB</div></div><div class="metric-bar-container"><div class="metric-bar-fill" id="memBar" style="width:39%;background:var(--pink)"></div></div></div>
+        <div class="metric-row"><div class="metric-header"><div class="metric-label">Thermal</div><div class="metric-val" id="thermVal" style="color:var(--orange)">42°C</div></div><div class="metric-bar-container"><div class="metric-bar-fill" id="thermBar" style="width:42%;background:var(--orange)"></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== GLOBALS =====
+let startTime = Date.now();
+let cycleNum = 0;
+let taskRunning = false;
+let currentVisionMode = 'camera';
+let animFrame;
+
+// ===== SCENE OBJECTS (what robot "sees") =====
+const sceneObjects = [
+  { id:'table', label:'Table', cls:'furniture', color:'#8B4513', x:0.25, y:0.55, w:0.50, h:0.35, z:1.2, conf:0.97 },
+  { id:'cup', label:'Cup', cls:'object', color:'#e74c3c', x:0.38, y:0.42, w:0.08, h:0.12, z:1.3, conf:0.95 },
+  { id:'bottle', label:'Bottle', cls:'object', color:'#3498db', x:0.55, y:0.38, w:0.06, h:0.16, z:1.4, conf:0.93 },
+  { id:'chair', label:'Chair', cls:'furniture', color:'#2ecc71', x:0.72, y:0.48, w:0.18, h:0.40, z:2.1, conf:0.91 },
+  { id:'person', label:'Person', cls:'human', color:'#f39c12', x:0.08, y:0.15, w:0.22, h:0.70, z:2.8, conf:0.98 },
+  { id:'door', label:'Door', cls:'structure', color:'#9b59b6', x:0.85, y:0.10, w:0.14, h:0.80, z:3.5, conf:0.89 },
+  { id:'laptop', label:'Laptop', cls:'object', color:'#1abc9c', x:0.42, y:0.45, w:0.10, h:0.07, z:1.25, conf:0.92 },
+];
+
+const segClasses = [
+  { name:'Floor', color:'#34495e' },
+  { name:'Wall', color:'#7f8c8d' },
+  { name:'Ceiling', color:'#95a5a6' },
+  { name:'Table', color:'#8B4513' },
+  { name:'Chair', color:'#2ecc71' },
+  { name:'Person', color:'#f39c12' },
+  { name:'Cup', color:'#e74c3c' },
+  { name:'Bottle', color:'#3498db' },
+  { name:'Door', color:'#9b59b6' },
+  { name:'Laptop', color:'#1abc9c' },
+  { name:'Window', color:'#00bcd4' },
+  { name:'Cabinet', color:'#795548' },
+];
+
+// ===== INIT CANVASES =====
+function initCanvases() {
+  // Camera canvas
+  const camC = document.getElementById('cameraCanvas');
+  const camR = camC.parentElement.getBoundingClientRect();
+  camC.width = Math.max(camR.width * 2, 640);
+  camC.height = Math.max(camR.height * 2, 400);
+
+  const depC = document.getElementById('depthCanvas');
+  depC.width = camC.width; depC.height = camC.height;
+
+  const segC = document.getElementById('segCanvas');
+  segC.width = camC.width; segC.height = camC.height;
+
+  const lidC = document.getElementById('lidarCanvas');
+  const lidR = lidC.parentElement.getBoundingClientRect();
+  lidC.width = Math.max(lidR.width * 2, 640);
+  lidC.height = Math.max(lidR.height * 2, 400);
+
+  // Build detection list
+  buildDetectionList();
+  buildSegLegend();
+}
+
+function buildDetectionList() {
+  const list = document.getElementById('detectionList');
+  list.innerHTML = '';
+  sceneObjects.forEach(obj => {
+    const div = document.createElement('div');
+    div.className = 'det-item';
+    div.innerHTML = `<div class="det-color" style="background:${obj.color}"></div><span class="det-name">${obj.label}</span><span class="det-conf">${(obj.conf*100).toFixed(0)}%</span><span class="det-dist">${obj.z.toFixed(1)}m</span>`;
+    list.appendChild(div);
+  });
+}
+
+function buildSegLegend() {
+  const legend = document.getElementById('segLegend');
+  legend.innerHTML = '';
+  segClasses.forEach(c => {
+    const item = document.createElement('div');
+    item.className = 'seg-legend-item';
+    item.innerHTML = `<div class="seg-legend-color" style="background:${c.color}"></div><span>${c.name}</span>`;
+    legend.appendChild(item);
+  });
+}
+
+// ===== CAMERA VIEW RENDERER =====
+function drawCameraView(t) {
+  const canvas = document.getElementById('cameraCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  // Background — simulated room scene
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fillRect(0, 0, W, H);
+
+  // Floor gradient
+  const floorGrad = ctx.createLinearGradient(0, H*0.55, 0, H);
+  floorGrad.addColorStop(0, '#2c2c3e');
+  floorGrad.addColorStop(1, '#1e1e30');
+  ctx.fillStyle = floorGrad;
+  ctx.fillRect(0, H*0.55, W, H*0.45);
+
+  // Floor grid lines (perspective)
+  ctx.strokeStyle = 'rgba(100,100,140,0.15)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 20; i++) {
+    const y = H * 0.55 + i * (H*0.45/20);
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+  for (let i = 0; i < 15; i++) {
+    const cx = W/2;
+    const x = cx + (i - 7) * (W / 8);
+    ctx.beginPath(); ctx.moveTo(cx, H*0.55); ctx.lineTo(x, H); ctx.stroke();
+  }
+
+  // Wall
+  ctx.fillStyle = '#22223a';
+  ctx.fillRect(0, 0, W, H*0.55);
+
+  // Ceiling line
+  ctx.strokeStyle = 'rgba(100,100,140,0.3)';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(0, H*0.08); ctx.lineTo(W, H*0.08); ctx.stroke();
+
+  // Window on wall
+  ctx.fillStyle = 'rgba(0,188,212,0.1)';
+  ctx.strokeStyle = 'rgba(0,188,212,0.3)';
+  ctx.lineWidth = 2;
+  ctx.fillRect(W*0.6, H*0.1, W*0.15, H*0.25);
+  ctx.strokeRect(W*0.6, H*0.1, W*0.15, H*0.25);
+  ctx.beginPath(); ctx.moveTo(W*0.675, H*0.1); ctx.lineTo(W*0.675, H*0.35); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(W*0.6, H*0.225); ctx.lineTo(W*0.75, H*0.225); ctx.stroke();
+
+  // Draw scene objects as solid shapes
+  sceneObjects.forEach(obj => {
+    const ox = obj.x * W;
+    const oy = obj.y * H;
+    const ow = obj.w * W;
+    const oh = obj.h * H;
+
+    // Object body (filled shape)
+    ctx.fillStyle = obj.color + '60';
+    ctx.strokeStyle = obj.color;
+    ctx.lineWidth = 1;
+
+    if (obj.cls === 'human') {
+      // Person silhouette
+      ctx.beginPath();
+      ctx.ellipse(ox + ow/2, oy + ow*0.4, ow*0.25, ow*0.3, 0, 0, Math.PI*2);
+      ctx.fill();
+      ctx.fillRect(ox + ow*0.2, oy + ow*0.7, ow*0.6, oh - ow*0.7);
+      ctx.fill();
+    } else if (obj.id === 'cup') {
+      ctx.beginPath();
+      ctx.moveTo(ox + 2, oy);
+      ctx.lineTo(ox + ow - 2, oy);
+      ctx.lineTo(ox + ow - 4, oy + oh);
+      ctx.lineTo(ox + 4, oy + oh);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+    } else if (obj.id === 'bottle') {
+      ctx.beginPath();
+      ctx.rect(ox + ow*0.3, oy, ow*0.4, oh*0.25);
+      ctx.rect(ox, oy + oh*0.25, ow, oh*0.75);
+      ctx.fill(); ctx.stroke();
+    } else {
+      ctx.fillRect(ox, oy, ow, oh);
+      ctx.strokeRect(ox, oy, ow, oh);
+    }
+
+    // Bounding box overlay
+    const jitter = Math.sin(t * 0.002 + obj.x * 10) * 1.5;
+    ctx.strokeStyle = obj.color;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 3]);
+    ctx.strokeRect(ox - 4 + jitter, oy - 4 + jitter, ow + 8, oh + 8);
+    ctx.setLineDash([]);
+
+    // Corner brackets
+    const bLen = 10;
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = obj.color;
+    // TL
+    ctx.beginPath(); ctx.moveTo(ox-4, oy-4+bLen); ctx.lineTo(ox-4, oy-4); ctx.lineTo(ox-4+bLen, oy-4); ctx.stroke();
+    // TR
+    ctx.beginPath(); ctx.moveTo(ox+ow+4-bLen, oy-4); ctx.lineTo(ox+ow+4, oy-4); ctx.lineTo(ox+ow+4, oy-4+bLen); ctx.stroke();
+    // BL
+    ctx.beginPath(); ctx.moveTo(ox-4, oy+oh+4-bLen); ctx.lineTo(ox-4, oy+oh+4); ctx.lineTo(ox-4+bLen, oy+oh+4); ctx.stroke();
+    // BR
+    ctx.beginPath(); ctx.moveTo(ox+ow+4-bLen, oy+oh+4); ctx.lineTo(ox+ow+4, oy+oh+4); ctx.lineTo(ox+ow+4, oy+oh+4-bLen); ctx.stroke();
+
+    // Label background
+    const labelText = `${obj.label} ${(obj.conf*100).toFixed(0)}% [${obj.z.toFixed(1)}m]`;
+    ctx.font = `bold ${Math.max(12, W*0.018)}px JetBrains Mono, monospace`;
+    const tm = ctx.measureText(labelText);
+    ctx.fillStyle = 'rgba(0,0,0,0.75)';
+    ctx.fillRect(ox - 4, oy - 22, tm.width + 10, 18);
+    ctx.fillStyle = obj.color;
+    ctx.fillText(labelText, ox + 1, oy - 8);
+  });
+
+  // Crosshair center
+  ctx.strokeStyle = 'rgba(0,212,255,0.3)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(W/2, 0); ctx.lineTo(W/2, H); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, H/2); ctx.lineTo(W, H/2); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Center dot
+  ctx.fillStyle = 'rgba(0,212,255,0.5)';
+  ctx.beginPath(); ctx.arc(W/2, H/2, 4, 0, Math.PI*2); ctx.fill();
+
+  // Scan line
+  const scanY = (t * 0.1) % H;
+  ctx.strokeStyle = 'rgba(0,212,255,0.08)';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(0, scanY); ctx.lineTo(W, scanY); ctx.stroke();
+}
+
+// ===== DEPTH MAP RENDERER =====
+function drawDepthView(t) {
+  const canvas = document.getElementById('depthCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  // Create depth gradient background (far = dark blue, near = bright yellow/red)
+  const imgData = ctx.createImageData(W, H);
+  const data = imgData.data;
+
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const idx = (y * W + x) * 4;
+      // Base depth from perspective (floor closer at bottom)
+      let depth = 0;
+      if (y < H * 0.55) {
+        depth = 4.0 + Math.sin(x * 0.01) * 0.3; // walls far
+      } else {
+        depth = 5.0 - (y - H*0.55) / (H*0.45) * 4.0; // floor perspective
+      }
+
+      // Add noise
+      depth += (Math.random() - 0.5) * 0.15;
+
+      // Check if inside any object (closer depth)
+      for (const obj of sceneObjects) {
+        const ox = obj.x * W, oy = obj.y * H;
+        const ow = obj.w * W, oh = obj.h * H;
+        if (x >= ox && x <= ox+ow && y >= oy && y <= oy+oh) {
+          depth = obj.z + (Math.random()-0.5)*0.1;
+          break;
+        }
+      }
+
+      // Map depth to color (jet colormap: near=red, mid=green, far=blue)
+      const nd = Math.max(0, Math.min(1, (depth - 0.3) / 5.5));
+      let r, g, b;
+      if (nd < 0.25) {
+        r = 255; g = Math.floor(nd * 4 * 255); b = 0;
+      } else if (nd < 0.5) {
+        r = Math.floor((0.5 - nd) * 4 * 255); g = 255; b = 0;
+      } else if (nd < 0.75) {
+        r = 0; g = 255; b = Math.floor((nd - 0.5) * 4 * 255);
+      } else {
+        r = 0; g = Math.floor((1 - nd) * 4 * 255); b = 255;
+      }
+
+      data[idx] = r;
+      data[idx+1] = g;
+      data[idx+2] = b;
+      data[idx+3] = 255;
+    }
+  }
+  ctx.putImageData(imgData, 0, 0);
+
+  // Object depth outlines
+  ctx.lineWidth = 2;
+  sceneObjects.forEach(obj => {
+    ctx.strokeStyle = '#ffffff80';
+    ctx.strokeRect(obj.x*W, obj.y*H, obj.w*W, obj.h*H);
+    ctx.font = `bold ${Math.max(10, W*0.015)}px JetBrains Mono, monospace`;
+    ctx.fillStyle = '#fff';
+    ctx.fillText(`${obj.z.toFixed(1)}m`, obj.x*W+2, obj.y*H - 4);
+  });
+
+  // Depth scale bar
+  const barX = W - 30, barY = 30, barH = H - 60;
+  const grad = ctx.createLinearGradient(barX, barY, barX, barY + barH);
+  grad.addColorStop(0, '#ff0000');
+  grad.addColorStop(0.25, '#ffff00');
+  grad.addColorStop(0.5, '#00ff00');
+  grad.addColorStop(0.75, '#00ffff');
+  grad.addColorStop(1, '#0000ff');
+  ctx.fillStyle = grad;
+  ctx.fillRect(barX, barY, 16, barH);
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(barX, barY, 16, barH);
+  ctx.font = `${Math.max(9, W*0.012)}px JetBrains Mono`;
+  ctx.fillStyle = '#fff';
+  ctx.fillText('0.3m', barX - 30, barY + 10);
+  ctx.fillText('3.0m', barX - 30, barY + barH/2);
+  ctx.fillText('5.8m', barX - 30, barY + barH);
+}
+
+// ===== SEGMENTATION RENDERER =====
+function drawSegView(t) {
+  const canvas = document.getElementById('segCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  // Fill with class colors
+  // Ceiling
+  ctx.fillStyle = segClasses[2].color + 'cc';
+  ctx.fillRect(0, 0, W, H*0.08);
+
+  // Wall
+  ctx.fillStyle = segClasses[1].color + 'cc';
+  ctx.fillRect(0, H*0.08, W, H*0.47);
+
+  // Floor
+  ctx.fillStyle = segClasses[0].color + 'cc';
+  ctx.fillRect(0, H*0.55, W, H*0.45);
+
+  // Window region
+  ctx.fillStyle = segClasses[10].color + 'cc';
+  ctx.fillRect(W*0.6, H*0.1, W*0.15, H*0.25);
+
+  // Objects with semantic colors
+  const classMap = { 'Table': 3, 'Chair': 4, 'Person': 5, 'Cup': 6, 'Bottle': 7, 'Door': 8, 'Laptop': 9 };
+  sceneObjects.forEach(obj => {
+    const ci = classMap[obj.label];
+    if (ci !== undefined) {
+      ctx.fillStyle = segClasses[ci].color + 'cc';
+      ctx.fillRect(obj.x*W, obj.y*H, obj.w*W, obj.h*H);
+
+      // Class label
+      ctx.font = `bold ${Math.max(11, W*0.016)}px JetBrains Mono, monospace`;
+      ctx.fillStyle = '#fff';
+      ctx.fillText(obj.label, obj.x*W + 4, obj.y*H + 14);
+    }
+  });
+
+  // Pixelated edges effect
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.lineWidth = 1;
+  sceneObjects.forEach(obj => {
+    ctx.strokeRect(obj.x*W, obj.y*H, obj.w*W, obj.h*H);
+  });
+
+  // Grid overlay for "pixel" effect
+  ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+  ctx.lineWidth = 0.5;
+  const gridSize = Math.max(8, W / 80);
+  for (let x = 0; x < W; x += gridSize) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+  }
+  for (let y = 0; y < H; y += gridSize) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+}
+
+// ===== LiDAR 3D POINT CLOUD RENDERER =====
+let lidarAngle = 0;
+const lidarPoints = [];
+
+function generateLidarPoints() {
+  lidarPoints.length = 0;
+  const N = 3000;
+
+  // Floor points
+  for (let i = 0; i < N * 0.4; i++) {
+    lidarPoints.push({
+      x: (Math.random() - 0.5) * 8,
+      y: 0,
+      z: Math.random() * 6 + 0.5,
+      color: '#34495e',
+      intensity: 0.3 + Math.random() * 0.3
+    });
+  }
+
+  // Wall points
+  for (let i = 0; i < N * 0.2; i++) {
+    lidarPoints.push({
+      x: (Math.random() - 0.5) * 8,
+      y: Math.random() * 3,
+      z: 5 + Math.random() * 0.3,
+      color: '#7f8c8d',
+      intensity: 0.2 + Math.random() * 0.2
+    });
+  }
+
+  // Object clusters
+  const objPositions = [
+    { cx:0, cy:0.5, cz:1.5, sz:0.4, col:'#8B4513', n:200 }, // table
+    { cx:-0.2, cy:0.6, cz:1.5, sz:0.08, col:'#e74c3c', n:60 }, // cup
+    { cx:0.3, cy:0.6, cz:1.6, sz:0.06, col:'#3498db', n:50 }, // bottle
+    { cx:1.5, cy:0.6, cz:2.2, sz:0.3, col:'#2ecc71', n:150 }, // chair
+    { cx:-2, cy:1, cz:3, sz:0.5, col:'#f39c12', n:250 }, // person
+    { cx:3, cy:1.2, cz:3.5, sz:0.3, col:'#9b59b6', n:120 }, // door
+  ];
+
+  objPositions.forEach(op => {
+    for (let i = 0; i < op.n; i++) {
+      lidarPoints.push({
+        x: op.cx + (Math.random()-0.5) * op.sz * 2,
+        y: op.cy + (Math.random()-0.5) * op.sz * 3,
+        z: op.cz + (Math.random()-0.5) * op.sz,
+        color: op.col,
+        intensity: 0.6 + Math.random() * 0.4
+      });
+    }
+  });
+
+  // Scatter noise
+  for (let i = 0; i < N * 0.05; i++) {
+    lidarPoints.push({
+      x: (Math.random()-0.5) * 10,
+      y: Math.random() * 3,
+      z: Math.random() * 6,
+      color: '#555',
+      intensity: 0.1 + Math.random() * 0.1
+    });
+  }
+}
+
+function drawLidarView(t) {
+  const canvas = document.getElementById('lidarCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  ctx.fillStyle = '#050508';
+  ctx.fillRect(0, 0, W, H);
+
+  lidarAngle += 0.003;
+
+  const cosA = Math.cos(lidarAngle);
+  const sinA = Math.sin(lidarAngle);
+  const pitch = 0.3;
+  const cosP = Math.cos(pitch);
+  const sinP = Math.sin(pitch);
+
+  // Sort by depth for painter's algorithm
+  const projected = lidarPoints.map(p => {
+    // Rotate around Y axis
+    const rx = p.x * cosA - p.z * sinA;
+    const rz = p.x * sinA + p.z * cosA;
+    // Pitch
+    const ry = p.y * cosP - rz * sinP;
+    const rz2 = p.y * sinP + rz * cosP;
+
+    const scale = 120 / (rz2 + 5);
+    const sx = W/2 + rx * scale;
+    const sy = H/2 - ry * scale;
+
+    return { sx, sy, depth: rz2, color: p.color, intensity: p.intensity };
+  });
+
+  projected.sort((a, b) => b.depth - a.depth);
+
+  projected.forEach(p => {
+    if (p.depth < -4) return;
+    const size = Math.max(1, 3 - p.depth * 0.3);
+    const alpha = Math.min(1, p.intensity * (1 - p.depth * 0.05));
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = Math.max(0.1, alpha);
+    ctx.beginPath();
+    ctx.arc(p.sx, p.sy, size, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  ctx.globalAlpha = 1;
+
+  // Grid on floor plane
+  ctx.strokeStyle = 'rgba(0,212,255,0.06)';
+  ctx.lineWidth = 0.5;
+  for (let gz = 0; gz < 8; gz++) {
+    for (let gx = -5; gx <= 5; gx++) {
+      const x1 = gx * cosA - gz * sinA;
+      const z1 = gx * sinA + gz * cosA;
+      const y1 = 0 * cosP - z1 * sinP;
+      const z2 = 0 * sinP + z1 * cosP;
+      const scale = 120 / (z2 + 5);
+      const sx = W/2 + x1 * scale;
+      const sy = H/2 - y1 * scale;
+      ctx.fillStyle = 'rgba(0,212,255,0.05)';
+      ctx.fillRect(sx, sy, 1, 1);
+    }
+  }
+
+  // Origin axes
+  const axLen = 40;
+  ctx.lineWidth = 2;
+  // X (red)
+  ctx.strokeStyle = '#ff4444';
+  ctx.beginPath(); ctx.moveTo(W/2, H/2); ctx.lineTo(W/2 + axLen*cosA, H/2); ctx.stroke();
+  // Y (green)
+  ctx.strokeStyle = '#44ff44';
+  ctx.beginPath(); ctx.moveTo(W/2, H/2); ctx.lineTo(W/2, H/2 - axLen); ctx.stroke();
+  // Z (blue)
+  ctx.strokeStyle = '#4444ff';
+  ctx.beginPath(); ctx.moveTo(W/2, H/2); ctx.lineTo(W/2 - axLen*sinA, H/2 + axLen*sinP*0.5); ctx.stroke();
+
+  // Axis labels
+  ctx.font = '10px JetBrains Mono';
+  ctx.fillStyle = '#ff4444'; ctx.fillText('X', W/2 + axLen*cosA + 4, H/2 + 4);
+  ctx.fillStyle = '#44ff44'; ctx.fillText('Y', W/2 + 4, H/2 - axLen - 4);
+  ctx.fillStyle = '#4444ff'; ctx.fillText('Z', W/2 - axLen*sinA + 4, H/2 + axLen*sinP*0.5 + 12);
+
+  // Update point count display
+  const pts = 280000 + Math.floor(Math.random() * 15000);
+  document.getElementById('lidarPts').textContent = pts.toLocaleString() + ' pts';
+  document.getElementById('viPointCloud').textContent = Math.floor(pts/1000) + 'K pts';
+}
+
+// ===== VISION MODE SWITCH =====
+function switchVision(mode, el) {
+  currentVisionMode = mode;
+  document.querySelectorAll('.vision-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  ['camera', 'depth', 'segment', 'lidar'].forEach(m => {
+    const vp = document.getElementById('vv-' + m);
+    if (vp) vp.style.display = m === mode ? 'block' : 'none';
+  });
+}
+
+// ===== MAIN RENDER LOOP =====
+function renderLoop(t) {
+  switch (currentVisionMode) {
+    case 'camera': drawCameraView(t); break;
+    case 'depth': drawDepthView(t); break;
+    case 'segment': drawSegView(t); break;
+    case 'lidar': drawLidarView(t); break;
+  }
+  animFrame = requestAnimationFrame(renderLoop);
+}
+
+// ===== UPTIME =====
+setInterval(() => {
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  const h = String(Math.floor(elapsed / 3600)).padStart(2, '0');
+  const m = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
+  const s = String(elapsed % 60).padStart(2, '0');
+  document.getElementById('uptime').textContent = `${h}:${m}:${s}`;
+}, 1000);
+
+// ===== LAYER TOGGLE =====
+function toggleLayer(el) {
+  const layers = document.querySelectorAll('.layer');
+  const wasActive = el.classList.contains('active');
+  layers.forEach(l => l.classList.remove('active'));
+  if (!wasActive) el.classList.add('active');
+}
+
+// ===== TAB SWITCH =====
+function switchTab(tab, el) {
+  document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  ['console', 'tasks', 'metrics'].forEach(t => {
+    document.getElementById('tab-' + t).style.display = t === tab ? 'block' : 'none';
+  });
+}
+
+// ===== CONSOLE LOG =====
+function addLog(tag, msg) {
+  const now = new Date();
+  const time = now.toTimeString().slice(0, 8) + '.' + String(now.getMilliseconds()).padStart(3, '0');
+  const container = document.getElementById('consoleLog');
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `<span class="log-time">${time}</span><span class="log-tag ${tag}">${tag.toUpperCase()}</span><span class="log-msg">${msg}</span>`;
+  container.appendChild(entry);
+  container.scrollTop = container.scrollHeight;
+  while (container.children.length > 200) container.removeChild(container.firstChild);
+}
+
+// ===== SIMULATION MESSAGES =====
+const allMsgPools = {
+  vision: [
+    'Frame processed: 7 objects detected',
+    'Segmentation map: 12 classes, 94% mIoU',
+    'Pose estimation: person@2.8m, facing robot',
+    'Depth stereo: range 0.3–5.2m, 640×480',
+    'Hand-object: person holding mug',
+    'New object: bottle at [1.2, 0.8, 0.9]',
+    'Affordance: cup → graspable, table → placeable',
+    'Tracking: 7/7 stable, 0 occluded',
+  ],
+  lidar: [
+    'LiDAR scan: 287,412 points, 128 channels',
+    'Point cloud registered: ICP converged (3 iters)',
+    'Ground plane: detected at y=0.01m',
+    'Obstacle cluster: 3 objects segmented',
+    'LiDAR-camera fusion: extrinsic calibrated',
+    'Voxel downsampling: 287K → 45K points',
+  ],
+  fusion: [
+    'EKF update: 84-dim state propagated',
+    'CoM: [0.02, -0.01, 0.82] — nominal',
+    'Contact: 2 feet grounded, slip=0.01',
+    'IMU drift: < 0.002 rad/s',
+    'LiDAR+Vision alignment: Δ < 2mm',
+    'Force/torque: L=3.2N, R=0.0N',
+  ],
+  world: [
+    'Voxel map: 2.4M pts, 0.02m resolution',
+    'Object permanence: cup behind obstacle',
+    'Physics: collision check pass',
+    'Temporal predict: path clear 2.5s',
+    'SLAM loop closure — map corrected',
+    'Scene graph: 8 objects, 12 relations',
+  ],
+  planner: [
+    'LLM: "pick up cup" → Goal(grasp, cup)',
+    'PDDL: 5 subtasks queued',
+    'BT: SEQUENCE node active',
+    'Decompose: navigate → detect → grasp',
+    'Constraint: path feasible',
+    'Goal eval: 60% complete',
+  ],
+  rl: [
+    'Policy cycle: 200Hz nominal',
+    'Action: 30-dim (28j + 2g)',
+    'Reward: +0.87 (stable)',
+    'Sim-to-real residual: Δ=0.03',
+    'Grasp policy: force 4.2N',
+    'Gait phase: 3/4',
+  ],
+  control: [
+    'PID: 1000Hz, all nominal',
+    'ZMP: within polygon (margin 0.04m)',
+    'Torque limit: max 85%',
+    'Safety: all joints in range',
+    'Reflex: none triggered',
+    'Temp: max 38°C (joint_12)',
+  ],
+  memory: [
+    'Episodic: "person entered room"',
+    'Spatial: kitchen map +3.2m²',
+    'Vector DB: 14.2K embeddings',
+    'Recall: "cups in cabinet"',
+    'Graph: person→holding→mug',
+    'Checkpoint saved',
+  ],
+};
+
+const tags = ['vision', 'lidar', 'fusion', 'world', 'planner', 'rl', 'control', 'memory'];
+
+function simulationTick() {
+  cycleNum++;
+  document.getElementById('cycleCount').textContent = cycleNum.toLocaleString();
+
+  const tag = tags[Math.floor(Math.random() * tags.length)];
+  const pool = allMsgPools[tag];
+  addLog(tag, pool[Math.floor(Math.random() * pool.length)]);
+
+  // Jitter sensor values
+  const fps = 28 + Math.floor(Math.random() * 5);
+  document.getElementById('visionFPS').textContent = fps + ' FPS';
+  document.getElementById('visionHz').textContent = fps + ' Hz';
+  document.getElementById('camHud').textContent = `CAM L+R | 1280×720 | ${fps}fps`;
+  document.getElementById('ftValue').textContent = (10+Math.random()*8).toFixed(1) + ' N';
+  document.getElementById('visionConf').textContent = (91+Math.random()*6).toFixed(1) + '%';
+
+  const objs = 5 + Math.floor(Math.random() * 3);
+  document.getElementById('objCount').textContent = objs + ' detected';
+  document.getElementById('worldObj').textContent = (objs+1) + ' tracked';
+  document.getElementById('camDetCount').textContent = objs + ' objects';
+
+  document.getElementById('comVal').textContent = `[${(Math.random()*0.04-0.02).toFixed(3)}, ${(Math.random()*0.04-0.02).toFixed(3)}, 0.82]`;
+  document.getElementById('rlReward').textContent = '+' + (0.7+Math.random()*0.3).toFixed(2);
+  document.getElementById('memEpisodic').textContent = (140+Math.floor(cycleNum/5)) + ' events';
+  document.getElementById('viInference').textContent = (25+Math.floor(Math.random()*10)) + ' ms';
+
+  // Metrics
+  const cpu = 55+Math.floor(Math.random()*20);
+  document.getElementById('cpuVal').textContent = cpu+'%';
+  document.getElementById('cpuBar').style.width = cpu+'%';
+  const gpu = 70+Math.floor(Math.random()*18);
+  document.getElementById('gpuVal').textContent = gpu+'%';
+  document.getElementById('gpuBar').style.width = gpu+'%';
+  const net = 8+Math.floor(Math.random()*12);
+  document.getElementById('netVal').textContent = net+' ms';
+  document.getElementById('netBar').style.width = net+'%';
+  const temp = 38+Math.floor(Math.random()*10);
+  document.getElementById('thermVal').textContent = temp+'°C';
+  document.getElementById('thermBar').style.width = temp+'%';
+
+  // Jitter object positions slightly
+  sceneObjects.forEach(obj => {
+    obj.x += (Math.random() - 0.5) * 0.002;
+    obj.y += (Math.random() - 0.5) * 0.001;
+    obj.conf = Math.min(0.99, Math.max(0.85, obj.conf + (Math.random()-0.5)*0.02));
+  });
+}
+
+setInterval(simulationTick, 1200);
+
+// ===== BOOT SEQUENCE =====
+setTimeout(() => addLog('control', 'System boot sequence initiated...'), 100);
+setTimeout(() => addLog('control', 'Real-time kernel: 1 kHz tick confirmed'), 300);
+setTimeout(() => addLog('fusion', 'Sensor fusion pipeline: EKF ready'), 500);
+setTimeout(() => addLog('vision', 'ViT-L/14 + DETR loaded — warm-up complete'), 700);
+setTimeout(() => addLog('lidar', 'LiDAR 128-channel initialized — 300K pts/s'), 900);
+setTimeout(() => addLog('world', 'World model: voxel map + Dreamer-v3 ready'), 1100);
+setTimeout(() => addLog('planner', 'LLM (7B multimodal) + PDDL engine ready'), 1300);
+setTimeout(() => addLog('rl', 'Policies loaded: locomotion_v4, grasp_v2'), 1500);
+setTimeout(() => addLog('memory', 'Memory online — 3 rooms from persistence'), 1700);
+setTimeout(() => addLog('control', '✓ ALL SYSTEMS NOMINAL — Vision + LiDAR active'), 1900);
+
+// ===== TASK PRESETS =====
+const taskPresets = {
+  pickup: {
+    name: 'Pick up cup', steps: [
+      { layer:'planner', text:'LLM: "Pick up cup" → Goal(grasp, cup)' },
+      { layer:'planner', text:'PDDL: [detect, navigate, reach, grasp, lift]' },
+      { layer:'vision', text:'Object search: scanning for cup...' },
+      { layer:'lidar', text:'LiDAR: cup cluster at 1.3m, 42 points' },
+      { layer:'vision', text:'Cup at [1.3, 0.4, 0.8] — 97% conf' },
+      { layer:'world', text:'Path: 1.2m, no obstacles' },
+      { layer:'rl', text:'Locomotion: walking toward cup' },
+      { layer:'control', text:'ZMP balance during walk' },
+      { layer:'rl', text:'Switching to grasp_v2' },
+      { layer:'vision', text:'Affordance: top-grasp selected' },
+      { layer:'rl', text:'IK solved: 7-DoF trajectory' },
+      { layer:'control', text:'Gripper closing: 3.8N' },
+      { layer:'fusion', text:'Tactile confirm: grasped, slip=0.002' },
+      { layer:'memory', text:'Stored: "grasped cup at counter"' },
+      { layer:'planner', text:'✓ Cup picked up successfully' },
+    ]
+  },
+  navigate: {
+    name: 'Walk to kitchen', steps: [
+      { layer:'planner', text:'LLM: "Walk to kitchen" → Goal(navigate, kitchen)' },
+      { layer:'memory', text:'Spatial recall: kitchen [4.2, -1.0]' },
+      { layer:'lidar', text:'LiDAR: corridor clear, 287K pts' },
+      { layer:'world', text:'Path: 4.8m, 2 waypoints' },
+      { layer:'rl', text:'Locomotion: forward gait' },
+      { layer:'control', text:'ZMP: stable, stride 0.6m' },
+      { layer:'vision', text:'Obstacle check: hallway clear' },
+      { layer:'lidar', text:'LiDAR: doorway detected at 2.1m' },
+      { layer:'world', text:'SLAM: loop closure at doorway' },
+      { layer:'rl', text:'Turning 38°' },
+      { layer:'vision', text:'Kitchen landmark: 94% match' },
+      { layer:'rl', text:'Decelerating...' },
+      { layer:'control', text:'Full stop — nominal' },
+      { layer:'memory', text:'Position: kitchen' },
+      { layer:'planner', text:'✓ Arrived at kitchen' },
+    ]
+  },
+  wave: {
+    name: 'Wave hello', steps: [
+      { layer:'planner', text:'LLM: "Wave hello" → Goal(gesture, wave)' },
+      { layer:'vision', text:'Person at [2.0, 0.3] detected' },
+      { layer:'lidar', text:'LiDAR confirm: person cluster 2.1m' },
+      { layer:'planner', text:'Gesture: raise → wave×3 → lower' },
+      { layer:'rl', text:'Gesture policy activated' },
+      { layer:'control', text:'Balance: compensating arm raise' },
+      { layer:'rl', text:'Shoulder 120°, elbow 160°' },
+      { layer:'rl', text:'Wave 1/3' },
+      { layer:'rl', text:'Wave 2/3' },
+      { layer:'rl', text:'Wave 3/3 — lowering' },
+      { layer:'control', text:'CoM recentered' },
+      { layer:'memory', text:'"Waved at person"' },
+      { layer:'planner', text:'✓ Wave complete' },
+    ]
+  },
+  inspect: {
+    name: 'Inspect object', steps: [
+      { layer:'planner', text:'LLM: "Inspect" → Goal(examine, nearest)' },
+      { layer:'vision', text:'Scanning for nearest object...' },
+      { layer:'lidar', text:'LiDAR: bottle cluster 0.8m, 38 pts' },
+      { layer:'vision', text:'Bottle at [0.8, 0.2, 0.9]' },
+      { layer:'rl', text:'Approach: 0.5m walk' },
+      { layer:'vision', text:'Hi-res: 1280×720 stereo' },
+      { layer:'vision', text:'Class: plastic bottle, 500ml' },
+      { layer:'lidar', text:'LiDAR: height 0.22m, diameter 0.06m' },
+      { layer:'world', text:'Scene graph updated' },
+      { layer:'vision', text:'OCR: "Spring Water 500ml"' },
+      { layer:'memory', text:'Stored bottle properties' },
+      { layer:'planner', text:'✓ Bottle identified' },
+    ]
+  }
+};
+
+function runPreset(key) {
+  if (taskRunning) return;
+  const task = taskPresets[key];
+  document.getElementById('taskInput').value = task.name;
+  executeTask(task.steps, task.name);
+}
+
+function runTask() {
+  if (taskRunning) return;
+  const input = document.getElementById('taskInput').value.trim();
+  if (!input) return;
+  const steps = [
+    { layer:'planner', text:`LLM: "${input}" → goal...` },
+    { layer:'planner', text:'Decomposition: 4 subtasks' },
+    { layer:'vision', text:'Environment scan...' },
+    { layer:'lidar', text:'LiDAR: 3D scan complete' },
+    { layer:'world', text:'Path + collision check' },
+    { layer:'rl', text:'Policy: motor commands' },
+    { layer:'control', text:'Actuators engaged' },
+    { layer:'fusion', text:'Monitoring execution' },
+    { layer:'memory', text:'Trace stored' },
+    { layer:'planner', text:'✓ Complete: ' + input },
+  ];
+  executeTask(steps, input);
+}
+
+function executeTask(steps, name) {
+  taskRunning = true;
+  document.getElementById('taskBtn').disabled = true;
+  document.getElementById('planGoal').textContent = name;
+  document.getElementById('planSubs').textContent = steps.length + ' queued';
+
+  const timeline = document.getElementById('timeline');
+  timeline.innerHTML = '';
+  steps.forEach((step, i) => {
+    const div = document.createElement('div');
+    div.className = 'timeline-step';
+    div.id = 'tstep-' + i;
+    div.innerHTML = `<div class="step-indicator">${i+1}</div><span class="step-text">${step.text}</span>`;
+    timeline.appendChild(div);
+  });
+
+  switchTab('tasks', document.querySelectorAll('.panel-tab')[1]);
+
+  let idx = 0;
+  function nextStep() {
+    if (idx >= steps.length) {
+      taskRunning = false;
+      document.getElementById('taskBtn').disabled = false;
+      document.getElementById('planGoal').textContent = 'IDLE';
+      document.getElementById('planSubs').textContent = '0 queued';
+      addLog('planner', `"${name}" completed.`);
+      return;
+    }
+    const step = steps[idx];
+    const el = document.getElementById('tstep-' + idx);
+    if (idx > 0) {
+      const prev = document.getElementById('tstep-' + (idx-1));
+      prev.className = 'timeline-step done';
+      prev.querySelector('.step-indicator').textContent = '✓';
+    }
+    el.className = 'timeline-step active';
+    el.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    addLog(step.layer, step.text);
+    document.getElementById('planSubs').textContent = (steps.length-idx-1) + ' left';
+    idx++;
+    setTimeout(nextStep, 500 + Math.random() * 700);
+  }
+
+  addLog('planner', `Task: "${name}"`);
+  setTimeout(nextStep, 300);
+}
+
+// ===== INIT =====
+window.addEventListener('load', () => {
+  generateLidarPoints();
+  setTimeout(initCanvases, 100);
+  setTimeout(() => requestAnimationFrame(renderLoop), 200);
+});
+
+window.addEventListener('resize', () => {
+  setTimeout(initCanvases, 100);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Optimus Perceptron — AI Robot Simulation</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#0a0a0f;color:#e0e0f0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px}
+h1{font-size:42px;font-weight:900;background:linear-gradient(135deg,#00d4ff,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;margin-bottom:8px}
+.sub{font-size:14px;color:#8888aa;text-align:center;margin-bottom:40px;font-family:'JetBrains Mono',monospace}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;max-width:1100px;width:100%}
+.card{background:#12121a;border:1px solid #2a2a3a;border-radius:14px;padding:24px;transition:all .3s;cursor:pointer;text-decoration:none;color:inherit;position:relative;overflow:hidden}
+.card:hover{transform:translateY(-4px);border-color:#00d4ff;box-shadow:0 8px 30px rgba(0,212,255,.1)}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:14px 14px 0 0}
+.card:nth-child(1)::before{background:linear-gradient(90deg,#00d4ff,#7c3aed)}
+.card:nth-child(2)::before{background:linear-gradient(90deg,#10b981,#f59e0b)}
+.card:nth-child(3)::before{background:linear-gradient(90deg,#7c3aed,#ec4899)}
+.card .icon{font-size:36px;margin-bottom:12px}
+.card .title{font-size:18px;font-weight:800;margin-bottom:6px}
+.card .desc{font-size:12px;color:#8888aa;line-height:1.5}
+.card .tags{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.tag{font-size:9px;padding:3px 8px;border-radius:12px;font-family:'JetBrains Mono',monospace;font-weight:600;background:rgba(0,212,255,.1);color:#00d4ff}
+.footer{margin-top:40px;text-align:center;font-size:11px;color:#555;font-family:'JetBrains Mono',monospace}
+</style>
+</head>
+<body>
+<h1>OPTIMUS PERCEPTRON</h1>
+<p class="sub">Humanoid AI Robot Simulation Suite</p>
+<div class="grid">
+  <a class="card" href="optimus-city-simulation.html">
+    <div class="icon">🏙️</div>
+    <div class="title">City Walk + Full Stack</div>
+    <div class="desc">Complete city navigation simulation with 6 tabs: City Simulation, Technology Configuration, Battery Health, Todo List Robot, Damage & Repair, and Padel AI Training.</div>
+    <div class="tags"><span class="tag">6 TABS</span><span class="tag">LIVE SIM</span><span class="tag">AI STACK</span><span class="tag">PADEL</span></div>
+  </a>
+  <a class="card" href="optimus-park-simulation.html">
+    <div class="icon">🌳</div>
+    <div class="title">Park Walking Simulation</div>
+    <div class="desc">Park environment with pedestrians, children, other robots, and collision avoidance. FOV-based entity detection and classification.</div>
+    <div class="tags"><span class="tag">PARK</span><span class="tag">COLLISION</span><span class="tag">VISION</span></div>
+  </a>
+  <a class="card" href="optimus-perceptron-simulation.html">
+    <div class="icon">🧠</div>
+    <div class="title">AI Architecture Stack v3.0</div>
+    <div class="desc">Full 7-layer AI architecture visualization with robot body diagram, vision panels (RGB, Depth, Segmentation, LiDAR), and real-time metrics.</div>
+    <div class="tags"><span class="tag">7 LAYERS</span><span class="tag">ViT-L/14</span><span class="tag">DETR</span><span class="tag">PPO/SAC</span></div>
+  </a>
+</div>
+<div class="footer">Built with ❤️ by rominur — Powered by Optimus Prime AI</div>
+</body>
+</html>
