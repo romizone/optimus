@@ -364,6 +364,168 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 .arch-arrow{text-align:center;font-size:14px;color:#aaa;line-height:1;padding:2px 0}
 
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* ===== MOBILE RESPONSIVE ===== */
+@media(max-width:768px){
+  body{overflow:auto;height:auto;min-height:100vh}
+
+  /* Header */
+  .top-header{flex-direction:column;gap:4px;padding:6px 10px;text-align:center}
+  .top-header h1{font-size:13px}
+  .top-header .sub{font-size:8px}
+  .hud-stats{gap:6px;font-size:8px;flex-wrap:wrap;justify-content:center}
+
+  /* Main tabs — horizontal scroll with smaller text */
+  .main-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;gap:0}
+  .main-tab{flex:0 0 auto;min-width:0;padding:6px 8px;font-size:8px;gap:3px;white-space:nowrap}
+  .main-tab .tab-icon{font-size:10px}
+
+  /* Tab pages */
+  .tab-page{height:auto;min-height:calc(100vh - 84px);overflow:auto}
+
+  /* ===== TAB 1: CITY ===== */
+  .city-layout{display:flex;flex-direction:column;height:auto}
+  .city-container{width:100%;height:55vw;min-height:250px;max-height:380px}
+  .right{border-left:none;border-top:1px solid var(--border)}
+  .vision-section{padding:6px}
+  .vision-cam{aspect-ratio:16/8}
+  .class-section{padding:6px}
+  .entity-list{max-height:120px}
+  .entity-card{padding:4px 6px;font-size:9px;gap:4px}
+  .entity-card .e-icon{font-size:12px;width:16px}
+  .entity-card .e-name{font-size:9px}
+  .features-grid{grid-template-columns:1fr 1fr 1fr;gap:2px}
+  .feat-card{padding:3px 5px}
+  .feat-card .f-label{font-size:6px}
+  .feat-card .f-val{font-size:9px}
+  .console-section{max-height:160px}
+  .console-body{font-size:8px;line-height:1.4;max-height:130px}
+  .log .lt{font-size:7px}.log .ltag{font-size:6px}
+  .controls-overlay{bottom:5px;left:5px;gap:3px;max-width:calc(100% - 120px)}
+  .ctrl-btn{padding:3px 6px;font-size:7px}
+  .minimap{width:80px;height:80px;top:5px;right:5px}
+  .stats-overlay{padding:3px 6px;font-size:7px;top:5px;left:5px}
+  .collision-warn{font-size:11px}
+  .traffic-indicator{top:auto;bottom:5px;right:5px;left:auto;font-size:8px;padding:4px 6px}
+  .section-label{font-size:8px;margin-bottom:3px}
+
+  /* ===== TAB 2: PARK (iframe) ===== */
+  .arch-frame{min-height:500px}
+
+  /* ===== TAB 3: TECH CONFIG ===== */
+  .tech-layout{display:flex;flex-direction:column;height:auto}
+  .tech-col{border-right:none;border-bottom:1px solid var(--border);padding:10px;max-height:none}
+  .robot-canvas{aspect-ratio:2/3;max-height:300px}
+  .layer-stack{gap:4px}
+  .layer{padding:8px 10px}
+  .layer-name{font-size:11px}
+  .layer-desc{font-size:9px}
+  .detail-grid{grid-template-columns:1fr 1fr}
+  .vision-viewport{aspect-ratio:16/9}
+  .lidar-canvas-wrap{aspect-ratio:16/9}
+  .sensor-indicators{grid-template-columns:1fr 1fr}
+  .tech-subtabs .tech-subtab{font-size:8px;padding:5px}
+  .metrics-grid{gap:4px}
+
+  /* ===== TAB 4: BATTERY ===== */
+  .batt-layout{display:flex;flex-direction:column;height:auto}
+  .batt-left{border-right:none;border-bottom:1px solid var(--border);padding:12px}
+  .batt-right{width:100%;height:50vw;min-height:200px;max-height:350px}
+  .batt-big .batt-pct{font-size:36px}
+  .batt-ring{width:110px;height:110px}
+  .batt-info-grid{grid-template-columns:1fr 1fr}
+  .batt-card .bc-val{font-size:12px}
+  .station-card .st-icon{font-size:16px}
+  .station-card .st-name{font-size:10px}
+
+  /* ===== TAB 5: TODO ===== */
+  .todo-layout{padding:10px}
+  .todo-week{grid-template-columns:1fr 1fr;gap:6px}
+  .day-col{min-height:auto}
+  .day-header{padding:6px 8px;font-size:10px}
+  .day-header .day-date{font-size:7px}
+  .day-tasks{padding:5px}
+  .task-card{padding:6px 8px;font-size:10px}
+  .task-card .task-time{font-size:7px}
+  .task-card .task-name{font-size:10px}
+  .task-card .task-loc{font-size:8px}
+  .task-card .task-status{font-size:6px;padding:1px 4px}
+  .todo-footer{flex-direction:column;gap:6px;text-align:center;font-size:9px}
+
+  /* ===== TAB 6: DAMAGE & REPAIR ===== */
+  .dmg-layout{display:flex;flex-direction:column;height:auto}
+  .dmg-col{border-right:none;border-bottom:1px solid var(--border);padding:10px}
+  .dmg-body-wrap{aspect-ratio:2/3;max-height:350px}
+  .health-overview{grid-template-columns:1fr 1fr}
+  .ho-card .ho-val{font-size:16px}
+  .parts-table{font-size:9px}
+  .parts-table th{padding:4px 6px;font-size:7px}
+  .parts-table td{padding:3px 6px}
+  .repair-entry{padding:8px}
+  .repair-entry .re-title{font-size:10px}
+  .repair-entry .re-desc{font-size:9px}
+  .next-service .ns-date{font-size:14px}
+
+  /* ===== TAB 7: PADEL AI ===== */
+  .padel-layout{display:flex;flex-direction:column;height:auto}
+  .padel-court-area{width:100%;height:55vw;min-height:250px;max-height:380px}
+  .padel-right{border-left:none;border-top:1px solid var(--border)}
+  .padel-hud{font-size:8px;padding:4px 8px;top:5px;left:5px}
+  .padel-score{top:5px;right:5px;padding:6px 10px}
+  .padel-score .ps-nums{font-size:20px;gap:6px}
+  .padel-score .ps-label{font-size:7px}
+  .padel-score .ps-set{font-size:8px}
+  .padel-bottom{height:120px;flex-shrink:0}
+  .padel-techniques{gap:5px;padding:6px}
+  .tech-card{min-width:110px;padding:6px}
+  .tech-card .tc-icon{font-size:18px}
+  .tech-card .tc-name{font-size:9px}
+  .tech-card .tc-desc{font-size:7px}
+  .padel-ai-section{padding:8px}
+  .ai-model-card{padding:6px 8px}
+  .ai-model-card .mc-name{font-size:10px}
+  .ai-model-card .mc-model{font-size:8px}
+  .ai-model-card .mc-desc{font-size:8px}
+  .match-row{font-size:9px;padding:4px 6px;gap:4px}
+
+  /* ===== TAB 8: PAPER ===== */
+  .paper-container{padding:20px 16px 40px;font-size:13px}
+  .paper-title{font-size:20px}
+  .paper-subtitle{font-size:13px}
+  .paper-authors{font-size:12px}
+  .paper-abstract{padding:12px 14px}
+  .paper-abstract p{font-size:12px}
+  .paper-section h2{font-size:16px}
+  .paper-section h3{font-size:14px}
+  .paper-section p{font-size:13px}
+  .paper-table{font-size:11px}
+  .paper-table th{padding:5px 6px;font-size:10px}
+  .paper-table td{padding:4px 6px}
+  .paper-eq{font-size:11px;padding:8px 10px;overflow-x:auto}
+  .paper-list{font-size:12px}
+  .paper-refs{font-size:11px}
+  .arch-layer{font-size:10px}
+  .arch-num{width:24px;font-size:9px}
+  .arch-name{width:100px;padding:5px 6px;font-size:10px}
+  .arch-desc{padding:5px 6px;font-size:10px}
+}
+
+@media(max-width:480px){
+  .top-header h1{font-size:11px}
+  .hud-stats{font-size:7px;gap:4px}
+  .main-tab{padding:5px 6px;font-size:7px}
+  .main-tab .tab-icon{font-size:9px}
+  .city-container{height:50vw;min-height:200px;max-height:300px}
+  .minimap{width:60px;height:60px}
+  .ctrl-btn{padding:2px 4px;font-size:6px}
+  .todo-week{grid-template-columns:1fr}
+  .paper-container{padding:14px 10px 30px;font-size:12px}
+  .paper-title{font-size:17px}
+  .arch-name{width:80px;font-size:9px}
+  .padel-court-area{height:50vw;min-height:200px}
+  .padel-bottom{height:100px}
+  .tech-card{min-width:90px}
+}
 </style>
 </head>
 <body>

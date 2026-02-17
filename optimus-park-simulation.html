@@ -79,6 +79,50 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 .collision-warn{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:14px;font-weight:800;color:var(--red);font-family:'JetBrains Mono',monospace;text-shadow:0 0 10px rgba(239,68,68,.5);pointer-events:none;z-index:20;opacity:0;transition:opacity .3s}
 .collision-warn.show{opacity:1}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* ===== MOBILE RESPONSIVE ===== */
+@media(max-width:768px){
+  body{overflow:auto;height:auto;min-height:100vh}
+  .header{flex-direction:column;gap:6px;padding:8px 12px;text-align:center}
+  .header h1{font-size:14px}
+  .header .sub{font-size:8px}
+  .hud-stats{gap:8px;font-size:9px;flex-wrap:wrap;justify-content:center}
+  .main{display:flex;flex-direction:column;height:auto;min-height:calc(100vh - 80px)}
+  .park-container{width:100%;height:60vw;min-height:280px;max-height:400px}
+  .right{border-left:none;border-top:1px solid var(--border)}
+  .vision-section{padding:6px}
+  .vision-cam{aspect-ratio:16/8}
+  .class-section{padding:6px}
+  .entity-list{max-height:120px}
+  .entity-card{padding:4px 6px;font-size:9px}
+  .entity-card .e-icon{font-size:13px;width:18px}
+  .entity-card .e-name{font-size:9px}
+  .features-grid{grid-template-columns:1fr 1fr 1fr;gap:2px}
+  .feat-card{padding:3px 5px}
+  .feat-card .f-label{font-size:6px}
+  .feat-card .f-val{font-size:9px}
+  .console-section{max-height:180px}
+  .console-body{font-size:8px;line-height:1.4;max-height:140px}
+  .log .lt{font-size:7px}
+  .log .ltag{font-size:6px}
+  .controls-overlay{bottom:5px;left:5px;gap:3px;max-width:calc(100% - 150px)}
+  .ctrl-btn{padding:4px 7px;font-size:8px}
+  .minimap{width:90px;height:90px;top:5px;right:5px}
+  .stats-overlay{padding:4px 6px;font-size:8px;top:5px;left:5px}
+  .stats-overlay .so-row{gap:8px}
+  .collision-warn{font-size:11px}
+  .section-label{font-size:8px;margin-bottom:3px}
+}
+@media(max-width:480px){
+  .park-container{height:55vw;min-height:220px;max-height:320px}
+  .header h1{font-size:12px}
+  .hud-stats{font-size:8px;gap:6px}
+  .minimap{width:70px;height:70px}
+  .controls-overlay{max-width:calc(100% - 90px)}
+  .ctrl-btn{padding:3px 5px;font-size:7px}
+  .features-grid{grid-template-columns:1fr 1fr}
+  .console-section{max-height:150px}
+}
 </style>
 </head>
 <body>

@@ -678,7 +678,73 @@
 
   @media (max-width: 1200px) {
     .main { grid-template-columns: 1fr 1fr; }
-    .robot-panel, .center-panel { display: none; }
+    .robot-panel { display: none; }
+  }
+
+  /* ===== MOBILE RESPONSIVE ===== */
+  @media (max-width: 768px) {
+    body{overflow:auto}
+    .header{flex-direction:column;gap:4px;padding:8px 12px;text-align:center}
+    .header h1{font-size:14px}
+    .header .subtitle{font-size:9px}
+    .status-bar{gap:8px;font-size:9px;flex-wrap:wrap;justify-content:center}
+
+    .page-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .page-tab{padding:8px 16px;font-size:10px;gap:5px;white-space:nowrap}
+    .page-tab .tab-icon{font-size:12px}
+    .tab-view{height:auto;min-height:calc(100vh - 90px);overflow:auto}
+
+    .main{display:flex;flex-direction:column;height:auto;gap:0}
+    .robot-panel{display:block;border-right:none;border-bottom:1px solid var(--border)}
+    .robot-panel .robot-svg-wrap{max-height:300px}
+    .center-panel{display:block}
+    .panel{border-right:none;border-bottom:1px solid var(--border);overflow:visible;max-height:none}
+
+    .vision-tab-bar{flex-wrap:wrap}
+    .vision-tab{font-size:8px;padding:4px 3px}
+    .vision-viewport{aspect-ratio:16/9}
+    .lidar-canvas-wrap{aspect-ratio:16/9}
+    .seg-legend{font-size:9px;gap:4px}
+
+    .layer-stack{gap:3px}
+    .layer{padding:7px 9px}
+    .layer-name{font-size:11px;gap:4px}
+    .layer-badge{font-size:7px}
+    .layer-desc{font-size:9px}
+    .detail-grid{grid-template-columns:1fr}
+    .detail-item{padding:4px 6px;font-size:9px}
+
+    .console-body{font-size:8px;max-height:200px}
+    .metric-row .metric-label{font-size:8px}
+    .metric-row .metric-val{font-size:10px}
+
+    .paper-container{padding:20px 14px 40px;font-size:13px}
+    .paper-title{font-size:19px}
+    .paper-subtitle{font-size:12px}
+    .paper-authors{font-size:12px}
+    .paper-abstract{padding:12px 14px}
+    .paper-abstract p{font-size:12px}
+    .paper-section h2{font-size:15px}
+    .paper-section p{font-size:12px}
+    .paper-table{font-size:10px}
+    .paper-table th{padding:4px 5px;font-size:9px}
+    .paper-table td{padding:3px 5px}
+    .paper-eq{font-size:10px;padding:6px 8px}
+    .paper-list{font-size:12px}
+    .paper-refs{font-size:10px}
+    .arch-layer{font-size:10px}
+    .arch-num{width:22px;font-size:9px}
+    .arch-name{width:90px;padding:4px 6px;font-size:9px}
+    .arch-desc{padding:4px 6px;font-size:9px}
+  }
+
+  @media (max-width: 480px) {
+    .header h1{font-size:12px}
+    .status-bar{font-size:8px;gap:6px}
+    .page-tab{padding:6px 10px;font-size:9px}
+    .paper-container{padding:14px 10px 30px;font-size:12px}
+    .paper-title{font-size:16px}
+    .arch-name{width:70px;font-size:8px}
   }
 
   /* ===== PAGE TABS ===== */
