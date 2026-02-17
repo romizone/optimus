@@ -28,10 +28,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 /* ===== MAIN TABS ===== */
 .main-tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);z-index:200;position:relative;overflow-x:auto;scrollbar-width:none}
 .main-tabs::-webkit-scrollbar{display:none}
-.main-tab{flex:1 1 0;min-width:0;padding:10px 10px;font-size:10px;font-weight:700;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;text-transform:uppercase;letter-spacing:.3px;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;text-align:center}
+.main-tab{flex:1 1 0;min-width:0;padding:8px 6px;font-size:9px;font-weight:700;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;text-transform:uppercase;letter-spacing:.2px;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;text-align:center}
 .main-tab:hover{color:var(--text);background:rgba(255,255,255,.02)}
 .main-tab.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(0,212,255,.04)}
-.main-tab .tab-icon{font-size:14px}
+.main-tab .tab-icon{font-size:12px}
 .tab-page{display:none;height:calc(100vh - 84px);overflow:hidden}
 .tab-page.active{display:block}
 
@@ -385,14 +385,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 
 <!-- MAIN TABS -->
 <div class="main-tabs">
-  <div class="main-tab active" onclick="switchMainTab('sim',this)"><span class="tab-icon">🏙️</span> City Simulation</div>
-  <div class="main-tab" onclick="switchMainTab('tech',this)"><span class="tab-icon">⚙️</span> Technology Configuration</div>
-  <div class="main-tab" onclick="switchMainTab('batt',this)"><span class="tab-icon">🔋</span> Battery Health</div>
-  <div class="main-tab" onclick="switchMainTab('todo',this)"><span class="tab-icon">📋</span> Todo List Robot</div>
-  <div class="main-tab" onclick="switchMainTab('dmg',this)"><span class="tab-icon">🔧</span> Damage & Repair</div>
+  <div class="main-tab active" onclick="switchMainTab('sim',this)"><span class="tab-icon">🏙️</span> City</div>
+  <div class="main-tab" onclick="switchMainTab('park',this)"><span class="tab-icon">🌳</span> Park</div>
+  <div class="main-tab" onclick="switchMainTab('tech',this)"><span class="tab-icon">⚙️</span> Tech Config</div>
+  <div class="main-tab" onclick="switchMainTab('batt',this)"><span class="tab-icon">🔋</span> Battery</div>
+  <div class="main-tab" onclick="switchMainTab('todo',this)"><span class="tab-icon">📋</span> Todo</div>
+  <div class="main-tab" onclick="switchMainTab('dmg',this)"><span class="tab-icon">🔧</span> Damage</div>
   <div class="main-tab" onclick="switchMainTab('padel',this)"><span class="tab-icon">🎾</span> Padel AI</div>
   <div class="main-tab" onclick="switchMainTab('paper',this)"><span class="tab-icon">📄</span> Paper</div>
-  <div class="main-tab" onclick="switchMainTab('arch',this)"><span class="tab-icon">🧠</span> AI Architecture</div>
+  <div class="main-tab" onclick="switchMainTab('arch',this)"><span class="tab-icon">🧠</span> AI Arch</div>
 </div>
 
 <!-- ==================== TAB 1: CITY SIMULATION ==================== -->
@@ -1285,16 +1286,22 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
   <iframe class="arch-frame" id="archFrame" src="about:blank" loading="lazy"></iframe>
 </div>
 
+<!-- ==================== TAB 9: PARK SIMULATION ==================== -->
+<div class="tab-page" id="page-park">
+  <iframe class="arch-frame" id="parkFrame" src="about:blank" loading="lazy"></iframe>
+</div>
+
 <script>
 // ==================== TAB SWITCHING ====================
 function switchMainTab(tab,el){
   document.querySelectorAll('.main-tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  ['sim','tech','batt','todo','dmg','padel','paper','arch'].forEach(t=>document.getElementById('page-'+t).classList.toggle('active',tab===t));
+  ['sim','park','tech','batt','todo','dmg','padel','paper','arch'].forEach(t=>document.getElementById('page-'+t).classList.toggle('active',tab===t));
   if(tab==='sim')resize();
   if(tab==='batt'){setTimeout(()=>{resizeBattMap();drawBattMap()},50)}
   if(tab==='padel'){setTimeout(()=>{resizePadel();if(!padelAnimating){padelAnimating=true;padelLoop()}},50)}
   if(tab==='arch'){const f=document.getElementById('archFrame');if(f.src==='about:blank')f.src='optimus-perceptron-simulation.html'}
+  if(tab==='park'){const f=document.getElementById('parkFrame');if(f.src==='about:blank')f.src='optimus-park-simulation.html'}
 }
 function switchTechTab(tab,el){
   document.querySelectorAll('.tech-subtab').forEach(t=>t.classList.remove('active'));
